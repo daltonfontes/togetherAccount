@@ -38,6 +38,66 @@ jobs:
       - name: Test
         run: npm test -- --ci
 
+  backend-e2e:
+    name: Backend (e2e)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: together_account
+          POSTGRES_PASSWORD: together_account
+          POSTGRES_DB: together_account_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U together_account"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DB_HOST: localhost
+      DB_PORT: 5432
+      DB_USERNAME: together_account
+      DB_PASSWORD: together_account
+      DB_DATABASE: together_account_test
+      REDIS_HOST: localhost
+      REDIS_PORT: 6379
+      JWT_ACCESS_SECRET: ci-access-secret-please-use-a-long-random-string
+      JWT_REFRESH_SECRET: ci-refresh-secret-please-use-a-long-random-string
+      LOG_LEVEL: error
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run migrations
+        run: npm run migration:run
+
+      - name: Test (e2e)
+        run: npm run test:e2e
+
   frontend:
     name: Frontend
     runs-on: ubuntu-latest
