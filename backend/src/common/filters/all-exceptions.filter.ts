@@ -16,6 +16,7 @@ interface ErrorResponseBody {
   method: string;
   message: string | string[];
   error: string;
+  details?: unknown;
 }
 
 @Catch()
@@ -27,7 +28,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
 
-    const { statusCode, message, error } = this.resolveException(exception);
+    const { statusCode, message, error, details } = this.resolveException(exception);
 
     const body: ErrorResponseBody = {
       statusCode,
@@ -36,6 +37,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
       method: request.method,
       message,
       error,
+      ...(details !== undefined ? { details } : {}),
     };
 
     if (statusCode >= 500) {
@@ -54,15 +56,34 @@ export class AllExceptionsFilter implements ExceptionFilter {
     statusCode: number;
     message: string | string[];
     error: string;
+    details?: unknown;
   } {
     if (exception instanceof HttpException) {
       const response = exception.getResponse();
       if (typeof response === 'object' && response !== null) {
         const responseObj = response as Record<string, unknown>;
+        const message =
+          typeof responseObj.message === 'string' || Array.isArray(responseObj.message)
+            ? (responseObj.message as string | string[])
+            : exception.message;
+        const error = typeof responseObj.error === 'string' ? responseObj.error : exception.name;
+
+        // Some exceptions (e.g. Terminus HealthCheckError) carry a structured
+        // payload beyond `message`/`error`/`statusCode` — e.g. `status`, `info`,
+        // `details`, or a non-string `error` describing which checks failed and
+        // why. Surface it instead of silently discarding it.
+        const rest: Record<string, unknown> = { ...responseObj };
+        delete rest.message;
+        delete rest.statusCode;
+        if (typeof rest.error === 'string') {
+          delete rest.error;
+        }
+
         return {
           statusCode: exception.getStatus(),
-          message: (responseObj.message as string | string[]) ?? exception.message,
-          error: (responseObj.error as string) ?? exception.name,
+          message,
+          error,
+          details: Object.keys(rest).length > 0 ? rest : undefined,
         };
       }
       return {
