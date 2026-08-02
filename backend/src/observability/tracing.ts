@@ -32,9 +32,7 @@ export function startTracing(): NodeSDK | undefined {
   sdk.start();
 
   process.on('SIGTERM', () => {
-    sdk
-      .shutdown()
-      .catch((err) => console.error('Error terminating OpenTelemetry SDK', err));
+    sdk.shutdown().catch((err) => console.error('Error terminating OpenTelemetry SDK', err));
   });
 
   return sdk;

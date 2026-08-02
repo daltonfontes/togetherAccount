@@ -95,7 +95,8 @@ export class BudgetsService {
     });
 
     const spent = transactions.reduce((sum, t) => sum + Number(t.amount), 0);
-    const percentageUsed = Number(budget.limitAmount) > 0 ? (spent / Number(budget.limitAmount)) * 100 : 0;
+    const percentageUsed =
+      Number(budget.limitAmount) > 0 ? (spent / Number(budget.limitAmount)) * 100 : 0;
 
     return {
       budget,

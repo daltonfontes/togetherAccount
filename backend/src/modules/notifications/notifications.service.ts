@@ -49,10 +49,7 @@ export class NotificationsService {
   }
 
   async markAsRead(userId: string, id: string): Promise<void> {
-    await this.notificationRepository.update(
-      { id, userId },
-      { isRead: true, readAt: new Date() },
-    );
+    await this.notificationRepository.update({ id, userId }, { isRead: true, readAt: new Date() });
   }
 
   async markAllAsRead(userId: string): Promise<void> {

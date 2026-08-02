@@ -1,4 +1,14 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CurrentUser } from '@/modules/auth/decorators/current-user.decorator';
 import { HouseholdRole } from '@/common/enums';
@@ -38,10 +48,7 @@ export class InvitesController {
   @Delete('households/:householdId/invites/:inviteId')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Revoke a pending invite' })
-  async revoke(
-    @Param('householdId') householdId: string,
-    @Param('inviteId') inviteId: string,
-  ) {
+  async revoke(@Param('householdId') householdId: string, @Param('inviteId') inviteId: string) {
     await this.invitesService.revoke(householdId, inviteId);
   }
 

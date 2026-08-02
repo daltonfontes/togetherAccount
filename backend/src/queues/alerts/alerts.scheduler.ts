@@ -43,7 +43,8 @@ export class AlertsScheduler {
         },
       });
       const spent = transactions.reduce((sum, t) => sum + Number(t.amount), 0);
-      const percentage = Number(budget.limitAmount) > 0 ? (spent / Number(budget.limitAmount)) * 100 : 0;
+      const percentage =
+        Number(budget.limitAmount) > 0 ? (spent / Number(budget.limitAmount)) * 100 : 0;
 
       if (percentage >= Number(budget.alertThreshold)) {
         const members = await this.memberRepository.find({

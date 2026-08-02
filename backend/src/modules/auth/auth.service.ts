@@ -1,9 +1,4 @@
-import {
-  ConflictException,
-  Injectable,
-  Logger,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { ConflictException, Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -105,10 +100,7 @@ export class AuthService {
 
     const matches = await argon2.verify(storedToken.tokenHash, rawToken);
     if (!matches) {
-      await this.refreshTokenRepository.update(
-        { userId },
-        { revoked: true },
-      );
+      await this.refreshTokenRepository.update({ userId }, { revoked: true });
       throw new UnauthorizedException('Refresh token reuse detected, all sessions revoked');
     }
 
