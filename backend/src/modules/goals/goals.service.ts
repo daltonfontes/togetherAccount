@@ -67,14 +67,21 @@ export class GoalsService {
       this.contributionRepository.create({ ...dto, goalId, userId }),
     );
 
-    goal.currentAmount = Number(goal.currentAmount) + dto.amount;
+    const currentAmount = Number(goal.currentAmount) + dto.amount;
+    const status =
+      currentAmount >= Number(goal.targetAmount) && goal.status === GoalStatus.IN_PROGRESS
+        ? GoalStatus.COMPLETED
+        : goal.status;
 
-    if (goal.currentAmount >= Number(goal.targetAmount) && goal.status === GoalStatus.IN_PROGRESS) {
-      goal.status = GoalStatus.COMPLETED;
+    if (status === GoalStatus.COMPLETED && goal.status !== GoalStatus.COMPLETED) {
       await this.notifyGoalReached(goal);
     }
 
-    await this.goalRepository.save(goal);
+    // Update only the changed columns instead of `save(goal)`: `goal` was loaded
+    // with its `contributions` relation (cascade: true), and re-saving the whole
+    // entity makes TypeORM re-sync that relation against the now-stale in-memory
+    // array, nullifying the goal_id of the contribution just inserted above.
+    await this.goalRepository.update(goal.id, { currentAmount, status });
     return this.findOneOrFail(householdId, goalId);
   }
 
