@@ -40,7 +40,15 @@ export class AllExceptionsFilter implements ExceptionFilter {
       ...(details !== undefined ? { details } : {}),
     };
 
-    if (statusCode >= 500) {
+    if (exception instanceof QueryFailedError) {
+      // The client-facing message is intentionally generic (see resolveException),
+      // so the real driver error — the only place that says *what* went wrong,
+      // e.g. a missing table or an actual constraint name — must still be logged.
+      this.logger.error(
+        `${request.method} ${request.url} -> ${statusCode}: ${exception.message}`,
+        exception.stack,
+      );
+    } else if (statusCode >= 500) {
       this.logger.error(
         `${request.method} ${request.url} -> ${statusCode}`,
         exception instanceof Error ? exception.stack : undefined,
@@ -94,11 +102,24 @@ export class AllExceptionsFilter implements ExceptionFilter {
     }
 
     if (exception instanceof QueryFailedError) {
-      return {
-        statusCode: HttpStatus.CONFLICT,
-        message: 'Database constraint violation',
-        error: 'QueryFailedError',
-      };
+      // Postgres error codes: https://www.postgresql.org/docs/current/errcodes-appendix.html
+      // Only genuine data conflicts are the client's fault (and thus a 409).
+      // Everything else (missing table, syntax error, connection failure, ...)
+      // is a server-side problem and must not be reported as 409/400 territory.
+      const code = (exception as QueryFailedError & { code?: string }).code;
+      const isDataConflict = code === '23505' || code === '23503' || code === '23514';
+
+      return isDataConflict
+        ? {
+            statusCode: HttpStatus.CONFLICT,
+            message: 'Database constraint violation',
+            error: 'QueryFailedError',
+          }
+        : {
+            statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+            message: 'Internal server error',
+            error: 'QueryFailedError',
+          };
     }
 
     return {
