@@ -59,6 +59,15 @@ const config: Config = {
         md: 'calc(var(--radius) - 2px)',
         sm: 'calc(var(--radius) - 4px)',
       },
+      borderWidth: {
+        3: '3px',
+      },
+      boxShadow: {
+        brutal: '4px 4px 0px 0px hsl(var(--border))',
+        'brutal-sm': '2px 2px 0px 0px hsl(var(--border))',
+        'brutal-lg': '8px 8px 0px 0px hsl(var(--border))',
+        'brutal-hover': '2px 2px 0px 0px hsl(var(--border))',
+      },
       keyframes: {
         'accordion-down': {
           from: { height: '0' },

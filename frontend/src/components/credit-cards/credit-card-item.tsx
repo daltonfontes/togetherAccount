@@ -18,7 +18,7 @@ export function CreditCardItem({ householdId, card }: { householdId: string; car
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div
-              className="flex h-10 w-10 items-center justify-center rounded-full text-white"
+              className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-border text-white"
               style={{ backgroundColor: card.color }}
             >
               <CardIcon className="h-5 w-5" />

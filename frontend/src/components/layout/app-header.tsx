@@ -14,7 +14,7 @@ export function AppHeader() {
   const [open, setOpen] = React.useState(false);
 
   return (
-    <header className="sticky top-0 z-40 flex h-14 items-center gap-3 border-b bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-40 flex h-16 items-center gap-3 border-b-2 border-border bg-background px-4">
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetTrigger asChild>
           <Button variant="ghost" size="icon" className="lg:hidden">
@@ -34,7 +34,7 @@ export function AppHeader() {
         </SheetContent>
       </Sheet>
 
-      <div className="hidden items-center gap-2 font-semibold lg:flex">
+      <div className="hidden items-center gap-2 font-extrabold lg:flex">
         <Wallet2 className="h-5 w-5 text-primary" />
         <span>Together Account</span>
       </div>

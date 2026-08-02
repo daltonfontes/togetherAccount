@@ -40,14 +40,16 @@ export function MemberSpendingChart({ data }: { data: MemberSpending[] }) {
             <Tooltip
               contentStyle={{
                 background: chrome.surface,
-                border: `1px solid ${chrome.gridline}`,
+                border: `2px solid ${chrome.primaryInk}`,
                 borderRadius: 8,
+                boxShadow: `4px 4px 0px 0px ${chrome.primaryInk}`,
                 fontSize: 12,
+                fontWeight: 600,
                 color: chrome.primaryInk,
               }}
               formatter={(value: number) => formatCurrency(value)}
             />
-            <Bar dataKey="total" radius={[0, 4, 4, 0]} maxBarSize={28}>
+            <Bar dataKey="total" radius={[0, 4, 4, 0]} maxBarSize={28} stroke={chrome.primaryInk} strokeWidth={2}>
               {data.map((entry, index) => (
                 <Cell key={entry.userId} fill={getCategoricalColor(index, mode)} />
               ))}

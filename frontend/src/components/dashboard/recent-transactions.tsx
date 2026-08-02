@@ -26,8 +26,8 @@ export function RecentTransactions({ transactions }: { transactions: Transaction
                   <div className="flex items-center gap-3">
                     <div
                       className={cn(
-                        'flex h-9 w-9 items-center justify-center rounded-full',
-                        isIncome ? 'bg-success/10 text-success' : 'bg-destructive/10 text-destructive',
+                        'flex h-9 w-9 items-center justify-center rounded-full border-2 border-border',
+                        isIncome ? 'bg-success/30 text-success-foreground' : 'bg-destructive/30 text-destructive-foreground',
                       )}
                     >
                       {isIncome ? <ArrowUpRight className="h-4 w-4" /> : <ArrowDownLeft className="h-4 w-4" />}

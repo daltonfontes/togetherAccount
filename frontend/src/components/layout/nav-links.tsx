@@ -19,10 +19,10 @@ export function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
             href={item.href}
             onClick={onNavigate}
             className={cn(
-              'flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors',
+              'flex items-center gap-3 rounded-md border-2 px-3 py-2 text-sm font-bold transition-all',
               isActive
-                ? 'bg-primary text-primary-foreground'
-                : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground',
+                ? 'border-border bg-primary text-primary-foreground shadow-brutal-sm'
+                : 'border-transparent text-muted-foreground hover:border-border hover:bg-accent hover:text-accent-foreground',
             )}
           >
             <Icon className="h-4 w-4" />

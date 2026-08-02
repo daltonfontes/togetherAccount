@@ -43,6 +43,7 @@ export function CategoryBreakdownChart({ data }: { data: CategoryBreakdown[] }) 
         <ResponsiveContainer width="100%" height="100%">
           <PieChart margin={{ bottom: 24 }}>
             <Pie
+              key={chartData.map((entry) => entry.categoryId).join('-')}
               data={chartData}
               dataKey="total"
               nameKey="name"
@@ -50,9 +51,10 @@ export function CategoryBreakdownChart({ data }: { data: CategoryBreakdown[] }) 
               cy="45%"
               innerRadius={60}
               outerRadius={90}
-              paddingAngle={2}
-              stroke={chrome.surface}
-              strokeWidth={2}
+              paddingAngle={chartData.length > 1 ? 2 : 0}
+              isAnimationActive={false}
+              stroke={chrome.primaryInk}
+              strokeWidth={3}
             >
               {chartData.map((entry, index) => (
                 <Cell key={entry.categoryId} fill={getCategoricalColor(index, mode)} />
@@ -61,9 +63,11 @@ export function CategoryBreakdownChart({ data }: { data: CategoryBreakdown[] }) 
             <Tooltip
               contentStyle={{
                 background: chrome.surface,
-                border: `1px solid ${chrome.gridline}`,
+                border: `2px solid ${chrome.primaryInk}`,
                 borderRadius: 8,
+                boxShadow: `4px 4px 0px 0px ${chrome.primaryInk}`,
                 fontSize: 12,
+                fontWeight: 600,
                 color: chrome.primaryInk,
               }}
               formatter={(value: number, name) => [formatCurrency(value), name]}

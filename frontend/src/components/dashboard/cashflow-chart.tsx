@@ -52,23 +52,35 @@ export function CashflowChart({ data }: { data: CashflowPoint[] }) {
               width={90}
             />
             <Tooltip
-              cursor={{ fill: chrome.gridline, opacity: 0.4 }}
+              cursor={{ fill: chrome.primaryInk, opacity: 0.08 }}
               contentStyle={{
                 background: chrome.surface,
-                border: `1px solid ${chrome.gridline}`,
+                border: `2px solid ${chrome.primaryInk}`,
                 borderRadius: 8,
+                boxShadow: `4px 4px 0px 0px ${chrome.primaryInk}`,
                 fontSize: 12,
+                fontWeight: 600,
                 color: chrome.primaryInk,
               }}
               formatter={(value: number, name) => [formatCurrency(value), name]}
               labelFormatter={(label) => monthLabel(String(label))}
             />
-            <Legend wrapperStyle={{ fontSize: 12, color: chrome.secondaryInk }} />
-            <Bar dataKey="income" name="Receitas" fill={status.good} radius={[4, 4, 0, 0]} maxBarSize={28} />
+            <Legend wrapperStyle={{ fontSize: 12, fontWeight: 600, color: chrome.secondaryInk }} />
+            <Bar
+              dataKey="income"
+              name="Receitas"
+              fill={status.good}
+              stroke={chrome.primaryInk}
+              strokeWidth={2}
+              radius={[4, 4, 0, 0]}
+              maxBarSize={28}
+            />
             <Bar
               dataKey="expense"
               name="Despesas"
               fill={status.critical}
+              stroke={chrome.primaryInk}
+              strokeWidth={2}
               radius={[4, 4, 0, 0]}
               maxBarSize={28}
             />

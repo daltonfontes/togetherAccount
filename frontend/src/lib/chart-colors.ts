@@ -12,20 +12,20 @@ export const statusPalette = {
 
 export const chartChrome = {
   light: {
-    surface: '#fcfcfb',
-    primaryInk: '#0b0b0b',
-    secondaryInk: '#52514e',
-    mutedInk: '#898781',
-    gridline: '#e1e0d9',
-    baseline: '#c3c2b7',
+    surface: '#ffffff',
+    primaryInk: '#000000',
+    secondaryInk: '#3a3a3a',
+    mutedInk: '#6b6b6b',
+    gridline: 'rgba(0,0,0,0.15)',
+    baseline: '#000000',
   },
   dark: {
-    surface: '#1a1a19',
+    surface: '#212121',
     primaryInk: '#ffffff',
-    secondaryInk: '#c3c2b7',
-    mutedInk: '#898781',
-    gridline: '#2c2c2a',
-    baseline: '#383835',
+    secondaryInk: '#d4d4d4',
+    mutedInk: '#a3a3a3',
+    gridline: 'rgba(255,255,255,0.2)',
+    baseline: '#ffffff',
   },
 };
 
