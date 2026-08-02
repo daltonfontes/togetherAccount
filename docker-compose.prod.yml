@@ -15,6 +15,11 @@
 #   - Secrets/URLs that default to "localhost" or a dev value in
 #     docker-compose.yml are required here (${VAR:?...}) so the stack refuses
 #     to start with placeholder config instead of silently deploying it.
+#   - Backend/frontend are attached to the external `dokploy-network` (with a
+#     `traefik.docker.network` label) in addition to the internal one, so
+#     Traefik can actually reach them. Without this you get a 502 Bad Gateway
+#     even with healthy containers and correct domain/port config, because
+#     Traefik and the app containers end up on different Docker networks.
 #
 # Required env vars (set these in the Dokploy UI, not in this file):
 #   JWT_ACCESS_SECRET, JWT_REFRESH_SECRET  - openssl rand -hex 32
@@ -98,6 +103,9 @@ services:
       - '3001'
     networks:
       - together-account
+      - dokploy-network
+    labels:
+      - traefik.docker.network=dokploy-network
 
   frontend:
     build:
@@ -115,10 +123,21 @@ services:
       - '3000'
     networks:
       - together-account
+      - dokploy-network
+    labels:
+      - traefik.docker.network=dokploy-network
 
 networks:
   together-account:
     driver: bridge
+  # Created by the Dokploy installer; must be declared external so compose
+  # doesn't try to create its own network with this name. Backend/frontend
+  # join it (in addition to together-account) so Traefik — which only
+  # listens on dokploy-network — can actually reach them. Without this,
+  # containers can be healthy and the domain/port config can be correct and
+  # you'll still get a 502 Bad Gateway.
+  dokploy-network:
+    external: true
 
 volumes:
   postgres_data:
