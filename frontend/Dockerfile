@@ -26,5 +26,11 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 USER nextjs
 EXPOSE 3000
 ENV PORT=3000
+# Docker injects HOSTNAME=<container id> into every container. The Next.js
+# standalone server reads HOSTNAME and binds to it instead of 0.0.0.0, so
+# without this it only listens on whichever network happens to resolve that
+# hostname — invisible to a reverse proxy reaching it over a different
+# Docker network (e.g. Traefik on a network added after the fact).
+ENV HOSTNAME="0.0.0.0"
 
 CMD ["node", "server.js"]
