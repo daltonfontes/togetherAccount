@@ -70,8 +70,7 @@ export default (): AppConfig => ({
     limit: parseInt(process.env.THROTTLE_LIMIT ?? '100', 10),
   },
   otel: {
-    exporterEndpoint:
-      process.env.OTEL_EXPORTER_OTLP_ENDPOINT || 'http://localhost:4318/v1/traces',
+    exporterEndpoint: process.env.OTEL_EXPORTER_OTLP_ENDPOINT || 'http://localhost:4318/v1/traces',
     serviceName: process.env.OTEL_SERVICE_NAME || 'together-account-api',
   },
   logLevel: process.env.LOG_LEVEL || 'info',

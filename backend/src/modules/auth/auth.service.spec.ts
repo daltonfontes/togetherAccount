@@ -15,7 +15,12 @@ jest.mock('argon2');
 describe('AuthService', () => {
   let service: AuthService;
   let usersService: jest.Mocked<UsersService>;
-  let refreshTokenRepository: { save: jest.Mock; create: jest.Mock; findOne: jest.Mock; update: jest.Mock };
+  let refreshTokenRepository: {
+    save: jest.Mock;
+    create: jest.Mock;
+    findOne: jest.Mock;
+    update: jest.Mock;
+  };
 
   beforeEach(async () => {
     refreshTokenRepository = {
@@ -135,10 +140,7 @@ describe('AuthService', () => {
       } as User);
       (argon2.verify as jest.Mock).mockResolvedValue(true);
 
-      const result = await service.login(
-        { email: 'jane@example.com', password: 'Passw0rd!' },
-        {},
-      );
+      const result = await service.login({ email: 'jane@example.com', password: 'Passw0rd!' }, {});
 
       expect(usersService.updateLastLogin).toHaveBeenCalledWith('user-1');
       expect(result.accessToken).toBe('signed-token');

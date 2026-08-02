@@ -14,7 +14,9 @@ import { TransactionsService } from './transactions.service';
 function repoMock() {
   return {
     create: jest.fn((entity) => entity),
-    save: jest.fn((entity) => Promise.resolve(Array.isArray(entity) ? entity : { id: 'tx-1', ...entity })),
+    save: jest.fn((entity) =>
+      Promise.resolve(Array.isArray(entity) ? entity : { id: 'tx-1', ...entity }),
+    ),
     find: jest.fn(),
     findOne: jest.fn(),
     findAndCount: jest.fn(),

@@ -58,7 +58,8 @@ export class ReportsService {
         name: g.name,
         targetAmount: g.targetAmount,
         currentAmount: g.currentAmount,
-        progress: Number(g.targetAmount) > 0 ? (Number(g.currentAmount) / Number(g.targetAmount)) * 100 : 0,
+        progress:
+          Number(g.targetAmount) > 0 ? (Number(g.currentAmount) / Number(g.targetAmount)) * 100 : 0,
       })),
       recentTransactions,
     };
@@ -100,7 +101,10 @@ export class ReportsService {
       relations: ['category'],
     });
 
-    const grouped = new Map<string, { categoryId: string; name: string; color: string; total: number }>();
+    const grouped = new Map<
+      string,
+      { categoryId: string; name: string; color: string; total: number }
+    >();
     for (const t of transactions) {
       const key = t.categoryId;
       const entry = grouped.get(key) ?? {

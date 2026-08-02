@@ -97,9 +97,7 @@ export class CreditCardsService {
       order: { date: 'DESC' },
     });
 
-    const cycleTransactions = transactions.filter(
-      (t) => t.date >= start && t.date <= end,
-    );
+    const cycleTransactions = transactions.filter((t) => t.date >= start && t.date <= end);
     const total = cycleTransactions.reduce((sum, t) => sum + Number(t.amount), 0);
     const usedPercentage = card.creditLimit > 0 ? (total / Number(card.creditLimit)) * 100 : 0;
 

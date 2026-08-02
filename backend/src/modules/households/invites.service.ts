@@ -36,11 +36,7 @@ export class InvitesService {
     private readonly configService: ConfigService<AppConfig>,
   ) {}
 
-  async create(
-    householdId: string,
-    invitedBy: string,
-    dto: CreateInviteDto,
-  ): Promise<Invite> {
+  async create(householdId: string, invitedBy: string, dto: CreateInviteDto): Promise<Invite> {
     const email = dto.email.toLowerCase();
     const existingUser = await this.usersService.findByEmail(email);
     if (existingUser) {

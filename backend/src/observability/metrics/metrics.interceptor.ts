@@ -18,8 +18,7 @@ export class MetricsInterceptor implements NestInterceptor {
     return next.handle().pipe(
       tap({
         next: () => this.recordMetric(request.method, route, response.statusCode, start),
-        error: () =>
-          this.recordMetric(request.method, route, response.statusCode || 500, start),
+        error: () => this.recordMetric(request.method, route, response.statusCode || 500, start),
       }),
     );
   }

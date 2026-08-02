@@ -201,7 +201,11 @@ export class TransactionsService {
     });
   }
 
-  async settleSplit(householdId: string, transactionId: string, splitId: string): Promise<TransactionSplit> {
+  async settleSplit(
+    householdId: string,
+    transactionId: string,
+    splitId: string,
+  ): Promise<TransactionSplit> {
     const split = await this.splitRepository.findOne({
       where: { id: splitId, transactionId },
       relations: ['transaction'],

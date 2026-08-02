@@ -23,5 +23,10 @@ export const DEFAULT_CATEGORIES: DefaultCategorySeed[] = [
   { name: 'Contas Fixas', type: TransactionType.EXPENSE, icon: 'receipt', color: '#64748b' },
   { name: 'Assinaturas', type: TransactionType.EXPENSE, icon: 'repeat', color: '#0ea5e9' },
   { name: 'Pets', type: TransactionType.EXPENSE, icon: 'paw-print', color: '#84cc16' },
-  { name: 'Outras Despesas', type: TransactionType.EXPENSE, icon: 'circle-ellipsis', color: '#78716c' },
+  {
+    name: 'Outras Despesas',
+    type: TransactionType.EXPENSE,
+    icon: 'circle-ellipsis',
+    color: '#78716c',
+  },
 ];

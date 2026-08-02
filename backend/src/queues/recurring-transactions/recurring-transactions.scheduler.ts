@@ -8,9 +8,7 @@ import { JOB_NAMES, QUEUE_NAMES } from '../queue.constants';
 export class RecurringTransactionsScheduler {
   private readonly logger = new Logger(RecurringTransactionsScheduler.name);
 
-  constructor(
-    @InjectQueue(QUEUE_NAMES.RECURRING_TRANSACTIONS) private readonly queue: Queue,
-  ) {}
+  constructor(@InjectQueue(QUEUE_NAMES.RECURRING_TRANSACTIONS) private readonly queue: Queue) {}
 
   @Cron(CronExpression.EVERY_DAY_AT_3AM)
   async enqueueDailyGeneration(): Promise<void> {
