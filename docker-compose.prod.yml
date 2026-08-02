@@ -1,0 +1,125 @@
+# Production compose for Together Account.
+#
+# Meant to be pasted into Dokploy as a standalone "Compose Path" (it is not an
+# override of docker-compose.yml). Differences from the dev compose:
+#   - Postgres/Redis are not published to the host — reachable only on the
+#     internal network. If you'd rather use Dokploy's managed Database
+#     resources, delete the postgres/redis services below and point
+#     DB_HOST/REDIS_HOST at whatever host Dokploy gives you.
+#   - Backend/frontend use `expose` instead of `ports` — Dokploy's Traefik
+#     routes to them via the Domains tab, no host port needs to be bound.
+#   - The observability stack (Prometheus/Grafana/Loki/Tempo) is left out to
+#     keep the first deploy small; tracing is disabled by default
+#     (OTEL_SDK_DISABLED=true). See docker-compose.yml for those services if
+#     you want to add them back later.
+#   - Secrets/URLs that default to "localhost" or a dev value in
+#     docker-compose.yml are required here (${VAR:?...}) so the stack refuses
+#     to start with placeholder config instead of silently deploying it.
+#
+# Required env vars (set these in the Dokploy UI, not in this file):
+#   JWT_ACCESS_SECRET, JWT_REFRESH_SECRET  - openssl rand -hex 32
+#   DB_PASSWORD                            - random password for Postgres
+#   CORS_ORIGINS, FRONTEND_URL             - https://app.yourdomain.com
+#   NEXT_PUBLIC_API_URL                    - https://api.yourdomain.com/api/v1
+# See docker-compose.prod.env.example for the full list with placeholders.
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: together-account-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USERNAME:-together_account}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD}
+      POSTGRES_DB: ${DB_DATABASE:-together_account}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${DB_USERNAME:-together_account}']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - together-account
+
+  redis:
+    image: redis:7-alpine
+    container_name: together-account-redis
+    restart: unless-stopped
+    command: ['redis-server', '--appendonly', 'yes']
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - together-account
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: together-account-backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      API_PREFIX: api
+      CORS_ORIGINS: ${CORS_ORIGINS:?Set CORS_ORIGINS to https://your-frontend-domain}
+      FRONTEND_URL: ${FRONTEND_URL:?Set FRONTEND_URL to https://your-frontend-domain}
+      DB_HOST: ${DB_HOST:-postgres}
+      DB_PORT: ${DB_PORT:-5432}
+      DB_USERNAME: ${DB_USERNAME:-together_account}
+      DB_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD}
+      DB_DATABASE: ${DB_DATABASE:-together_account}
+      DB_SYNCHRONIZE: 'false'
+      DB_LOGGING: 'false'
+      DB_SSL: ${DB_SSL:-false}
+      REDIS_HOST: ${REDIS_HOST:-redis}
+      REDIS_PORT: ${REDIS_PORT:-6379}
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:?Set JWT_ACCESS_SECRET (openssl rand -hex 32)}
+      JWT_ACCESS_EXPIRES_IN: ${JWT_ACCESS_EXPIRES_IN:-15m}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:?Set JWT_REFRESH_SECRET (openssl rand -hex 32)}
+      JWT_REFRESH_EXPIRES_IN: ${JWT_REFRESH_EXPIRES_IN:-7d}
+      THROTTLE_TTL: ${THROTTLE_TTL:-60}
+      THROTTLE_LIMIT: ${THROTTLE_LIMIT:-100}
+      OTEL_SDK_DISABLED: ${OTEL_SDK_DISABLED:-true}
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-http://tempo:4318/v1/traces}
+      OTEL_SERVICE_NAME: together-account-api
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    expose:
+      - '3001'
+    networks:
+      - together-account
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:?Set NEXT_PUBLIC_API_URL to https://your-api-domain/api/v1}
+    container_name: together-account-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    environment:
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:?Set NEXT_PUBLIC_API_URL to https://your-api-domain/api/v1}
+    expose:
+      - '3000'
+    networks:
+      - together-account
+
+networks:
+  together-account:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:
