@@ -133,4 +133,17 @@ describe('Auth (e2e)', () => {
         .expect(401);
     });
   });
+
+  describe('GET /auth/google', () => {
+    it('responds 503 instead of crashing when Google sign-in is not configured', async () => {
+      // .env.test intentionally has no GOOGLE_CLIENT_ID/SECRET/CALLBACK_URL —
+      // this is also true of any Dokploy deploy that hasn't set them, so the
+      // whole app booting at all (see beforeAll) already covers the "does not
+      // crash on startup" half of this; this covers the request-time half.
+      const response = await request(app.getHttpServer()).get('/api/v1/auth/google').expect(503);
+      expect(response.body.message).toMatch(/not configured/i);
+
+      await request(app.getHttpServer()).get('/api/v1/auth/google/callback').expect(503);
+    });
+  });
 });

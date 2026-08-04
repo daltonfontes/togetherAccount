@@ -26,7 +26,9 @@ togetherAccount/
 - **PostgreSQL via TypeORM**, com migrations versionadas em vez de `synchronize`.
 - **Autenticação** JWT de acesso (15 min) + refresh token rotativo (7 dias),
   hashing de senha com **Argon2**, estratégias Passport, guardas de papel por casa
-  (`owner` / `admin` / `member`).
+  (`owner` / `admin` / `member`). Login com **Google (OAuth 2.0)** opcional —
+  desativado por padrão, habilita ao definir `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET`/
+  `GOOGLE_CALLBACK_URL`.
 - **Redis + BullMQ** para jobs assíncronos: geração de transações recorrentes,
   alertas de orçamento/fatura e envio de e-mails de convite.
 - **Observabilidade**: logs estruturados com Winston, tracing distribuído via
@@ -137,6 +139,10 @@ Destaques:
 - `OTEL_EXPORTER_OTLP_ENDPOINT`: endpoint OTLP HTTP para onde os traces são
   enviados (Tempo, por padrão, no compose).
 - `NEXT_PUBLIC_API_URL`: URL base da API consumida pelo frontend.
+- `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` / `GOOGLE_CALLBACK_URL`: opcionais;
+  login com Google fica desativado (rotas `/auth/google` respondem 503) até os
+  três estarem definidos. Credenciais em
+  https://console.cloud.google.com/apis/credentials.
 
 ## Limitações conhecidas
 

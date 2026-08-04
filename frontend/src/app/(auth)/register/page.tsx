@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import { GoogleAuthButton } from '@/components/auth/google-auth-button';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -92,6 +93,9 @@ export default function RegisterPage() {
             </Button>
           </form>
         </Form>
+        <div className="mt-4">
+          <GoogleAuthButton />
+        </div>
         <p className="mt-4 text-center text-sm text-muted-foreground">
           Já tem uma conta?{' '}
           <Link href="/login" className="font-medium text-primary hover:underline">

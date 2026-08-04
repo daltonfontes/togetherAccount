@@ -1,7 +1,20 @@
-import { Body, Controller, HttpCode, HttpStatus, Post, Req, UseGuards } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Post,
+  Req,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { AuthGuard } from '@nestjs/passport';
+import { ApiExcludeEndpoint, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Throttle } from '@nestjs/throttler';
-import { Request } from 'express';
+import { Request, Response } from 'express';
+import { AppConfig } from '@/config/configuration';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
@@ -10,11 +23,16 @@ import { AuthResponseDto } from './dto/auth-response.dto';
 import { Public } from './decorators/public.decorator';
 import { CurrentUser } from './decorators/current-user.decorator';
 import { JwtRefreshAuthGuard } from './guards/jwt-refresh-auth.guard';
+import { GoogleOAuthEnabledGuard } from './guards/google-oauth-enabled.guard';
+import { GoogleProfile } from './types/google-profile.interface';
 
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly configService: ConfigService<AppConfig>,
+  ) {}
 
   @Public()
   @Throttle({ default: { limit: 10, ttl: 60_000 } })
@@ -44,6 +62,34 @@ export class AuthController {
   ): Promise<AuthResponseDto> {
     const { sub, tokenId, refreshToken } = req.user;
     return this.authService.refresh(sub, tokenId, refreshToken, this.extractMeta(req));
+  }
+
+  @Public()
+  @UseGuards(GoogleOAuthEnabledGuard, AuthGuard('google'))
+  @Get('google')
+  @ApiExcludeEndpoint()
+  googleLogin(): void {
+    // Guard redirects to Google's consent screen; this body never runs.
+  }
+
+  @Public()
+  @UseGuards(GoogleOAuthEnabledGuard, AuthGuard('google'))
+  @Get('google/callback')
+  @ApiExcludeEndpoint()
+  async googleCallback(@Req() req: Request, @Res() res: Response): Promise<void> {
+    const tokens = await this.authService.loginWithGoogle(
+      req.user as GoogleProfile,
+      this.extractMeta(req),
+    );
+
+    const frontendUrl = this.configService.get('frontendUrl', { infer: true })!;
+    const redirectUrl = new URL('/auth/callback', frontendUrl);
+    redirectUrl.hash = new URLSearchParams({
+      accessToken: tokens.accessToken,
+      refreshToken: tokens.refreshToken,
+    }).toString();
+
+    res.redirect(redirectUrl.toString());
   }
 
   @HttpCode(HttpStatus.NO_CONTENT)

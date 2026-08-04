@@ -26,6 +26,11 @@ export interface AppConfig {
     refreshSecret: string;
     refreshExpiresIn: string;
   };
+  google: {
+    clientId?: string;
+    clientSecret?: string;
+    callbackUrl?: string;
+  };
   throttle: {
     ttl: number;
     limit: number;
@@ -64,6 +69,11 @@ export default (): AppConfig => ({
     accessExpiresIn: process.env.JWT_ACCESS_EXPIRES_IN || '15m',
     refreshSecret: process.env.JWT_REFRESH_SECRET || 'dev-refresh-secret',
     refreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d',
+  },
+  google: {
+    clientId: process.env.GOOGLE_CLIENT_ID || undefined,
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET || undefined,
+    callbackUrl: process.env.GOOGLE_CALLBACK_URL || undefined,
   },
   throttle: {
     ttl: parseInt(process.env.THROTTLE_TTL ?? '60', 10),

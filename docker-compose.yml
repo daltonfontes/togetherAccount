@@ -70,6 +70,10 @@ services:
       REDIS_PORT: 6379
       JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-change-me-access-secret-please-use-a-long-random-string}
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-change-me-refresh-secret-please-use-a-long-random-string}
+      # Optional: leave unset to disable Google Sign-In (/auth/google routes return 503).
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      GOOGLE_CALLBACK_URL: ${GOOGLE_CALLBACK_URL:-}
       OTEL_EXPORTER_OTLP_ENDPOINT: http://tempo:4318/v1/traces
       OTEL_SERVICE_NAME: together-account-api
       LOG_LEVEL: info

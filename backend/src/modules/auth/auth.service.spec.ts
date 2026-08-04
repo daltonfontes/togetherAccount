@@ -38,6 +38,8 @@ describe('AuthService', () => {
           useValue: {
             findByEmail: jest.fn(),
             findById: jest.fn(),
+            findByGoogleId: jest.fn(),
+            linkGoogleAccount: jest.fn(),
             create: jest.fn(),
             updateLastLogin: jest.fn(),
           },
@@ -144,6 +146,101 @@ describe('AuthService', () => {
 
       expect(usersService.updateLastLogin).toHaveBeenCalledWith('user-1');
       expect(result.accessToken).toBe('signed-token');
+    });
+
+    it('throws UnauthorizedException for a Google-only account (no password set)', async () => {
+      usersService.findByEmail.mockResolvedValue({
+        id: 'user-1',
+        isActive: true,
+        passwordHash: undefined,
+      } as User);
+
+      await expect(
+        service.login({ email: 'google-user@example.com', password: 'whatever' }, {}),
+      ).rejects.toThrow(UnauthorizedException);
+    });
+  });
+
+  describe('loginWithGoogle', () => {
+    const profile = {
+      googleId: 'google-123',
+      email: 'jane@example.com',
+      fullName: 'Jane',
+      avatarUrl: 'https://example.com/avatar.png',
+    };
+
+    it('reuses an existing user already linked to this Google account', async () => {
+      usersService.findByGoogleId.mockResolvedValue({
+        id: 'user-1',
+        email: 'jane@example.com',
+        fullName: 'Jane',
+        isActive: true,
+        themePreference: 'system',
+      } as User);
+
+      const result = await service.loginWithGoogle(profile, {});
+
+      expect(usersService.findByEmail).not.toHaveBeenCalled();
+      expect(usersService.create).not.toHaveBeenCalled();
+      expect(usersService.updateLastLogin).toHaveBeenCalledWith('user-1');
+      expect(result.accessToken).toBe('signed-token');
+    });
+
+    it('links the Google account to an existing password-based user with the same email', async () => {
+      usersService.findByGoogleId.mockResolvedValue(null);
+      usersService.findByEmail.mockResolvedValue({
+        id: 'user-1',
+        email: 'jane@example.com',
+        fullName: 'Jane',
+        isActive: true,
+        themePreference: 'system',
+      } as User);
+      usersService.linkGoogleAccount.mockResolvedValue({
+        id: 'user-1',
+        email: 'jane@example.com',
+        fullName: 'Jane',
+        isActive: true,
+        themePreference: 'system',
+      } as User);
+
+      const result = await service.loginWithGoogle(profile, {});
+
+      expect(usersService.linkGoogleAccount).toHaveBeenCalledWith(
+        'user-1',
+        'google-123',
+        profile.avatarUrl,
+      );
+      expect(usersService.create).not.toHaveBeenCalled();
+      expect(result.accessToken).toBe('signed-token');
+    });
+
+    it('creates a new passwordless user when no account matches by googleId or email', async () => {
+      usersService.findByGoogleId.mockResolvedValue(null);
+      usersService.findByEmail.mockResolvedValue(null);
+      usersService.create.mockResolvedValue({
+        id: 'user-2',
+        email: 'jane@example.com',
+        fullName: 'Jane',
+        isActive: true,
+        themePreference: 'system',
+      } as User);
+
+      const result = await service.loginWithGoogle(profile, {});
+
+      expect(usersService.create).toHaveBeenCalledWith(
+        expect.objectContaining({ email: 'jane@example.com', googleId: 'google-123' }),
+      );
+      expect(usersService.create.mock.calls[0][0]).not.toHaveProperty('passwordHash');
+      expect(result.accessToken).toBe('signed-token');
+    });
+
+    it('throws UnauthorizedException for an inactive account', async () => {
+      usersService.findByGoogleId.mockResolvedValue({
+        id: 'user-1',
+        isActive: false,
+      } as User);
+
+      await expect(service.loginWithGoogle(profile, {})).rejects.toThrow(UnauthorizedException);
     });
   });
 

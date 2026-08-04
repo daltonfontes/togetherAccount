@@ -15,6 +15,7 @@ import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { AuthResponseDto } from './dto/auth-response.dto';
 import { JwtPayload } from './types/jwt-payload.interface';
+import { GoogleProfile } from './types/google-profile.interface';
 
 interface RequestMetadata {
   ipAddress?: string;
@@ -61,13 +62,52 @@ export class AuthService {
 
   async login(dto: LoginDto, meta: RequestMetadata): Promise<AuthResponseDto> {
     const user = await this.usersService.findByEmail(dto.email.toLowerCase());
-    if (!user || !user.isActive) {
+    if (!user || !user.isActive || !user.passwordHash) {
       throw new UnauthorizedException('Invalid credentials');
     }
 
     const passwordValid = await argon2.verify(user.passwordHash, dto.password);
     if (!passwordValid) {
       throw new UnauthorizedException('Invalid credentials');
+    }
+
+    await this.usersService.updateLastLogin(user.id);
+
+    await this.auditService.log({
+      userId: user.id,
+      action: AuditAction.LOGIN,
+      entityType: 'User',
+      entityId: user.id,
+      ipAddress: meta.ipAddress,
+      userAgent: meta.userAgent,
+    });
+
+    return this.issueTokens(user, meta);
+  }
+
+  async loginWithGoogle(profile: GoogleProfile, meta: RequestMetadata): Promise<AuthResponseDto> {
+    const email = profile.email.toLowerCase();
+
+    let user = await this.usersService.findByGoogleId(profile.googleId);
+    if (!user) {
+      const existingByEmail = await this.usersService.findByEmail(email);
+      user = existingByEmail
+        ? await this.usersService.linkGoogleAccount(
+            existingByEmail.id,
+            profile.googleId,
+            profile.avatarUrl,
+          )
+        : await this.usersService.create({
+            email,
+            fullName: profile.fullName,
+            avatarUrl: profile.avatarUrl,
+            googleId: profile.googleId,
+            emailVerified: true,
+          });
+    }
+
+    if (!user.isActive) {
+      throw new UnauthorizedException('Account is inactive');
     }
 
     await this.usersService.updateLastLogin(user.id);

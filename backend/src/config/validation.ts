@@ -26,6 +26,13 @@ export const validationSchema = Joi.object({
   JWT_REFRESH_SECRET: Joi.string().min(16).required(),
   JWT_REFRESH_EXPIRES_IN: Joi.string().default('7d'),
 
+  // Optional: Google Sign-In is disabled unless all three are set. Allowing ''
+  // matters because docker-compose interpolates an unset var as an empty
+  // string (${GOOGLE_CLIENT_ID:-}), not as absent.
+  GOOGLE_CLIENT_ID: Joi.string().allow('').optional(),
+  GOOGLE_CLIENT_SECRET: Joi.string().allow('').optional(),
+  GOOGLE_CALLBACK_URL: Joi.string().allow('').optional(),
+
   THROTTLE_TTL: Joi.number().default(60),
   THROTTLE_LIMIT: Joi.number().default(100),
 

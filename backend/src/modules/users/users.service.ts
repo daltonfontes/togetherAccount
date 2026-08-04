@@ -8,8 +8,11 @@ import { ChangePasswordDto } from './dto/change-password.dto';
 
 export interface CreateUserInput {
   email: string;
-  passwordHash: string;
+  passwordHash?: string;
   fullName: string;
+  avatarUrl?: string;
+  googleId?: string;
+  emailVerified?: boolean;
 }
 
 @Injectable()
@@ -23,6 +26,17 @@ export class UsersService {
 
   async findByEmail(email: string): Promise<User | null> {
     return this.usersRepository.findOne({ where: { email } });
+  }
+
+  async findByGoogleId(googleId: string): Promise<User | null> {
+    return this.usersRepository.findOne({ where: { googleId } });
+  }
+
+  async linkGoogleAccount(id: string, googleId: string, avatarUrl?: string): Promise<User> {
+    const user = await this.findByIdOrFail(id);
+    user.googleId = googleId;
+    user.avatarUrl = user.avatarUrl ?? avatarUrl;
+    return this.usersRepository.save(user);
   }
 
   async findById(id: string): Promise<User | null> {
@@ -49,6 +63,11 @@ export class UsersService {
 
   async changePassword(id: string, dto: ChangePasswordDto): Promise<void> {
     const user = await this.findByIdOrFail(id);
+    if (!user.passwordHash) {
+      throw new BadRequestException(
+        'This account signs in with Google and has no password to change',
+      );
+    }
     const isValid = await argon2.verify(user.passwordHash, dto.currentPassword);
     if (!isValid) {
       throw new BadRequestException('Current password is incorrect');

@@ -18,8 +18,12 @@ export class User extends BaseEntity {
   email: string;
 
   @Exclude()
-  @Column({ name: 'password_hash' })
-  passwordHash: string;
+  @Column({ name: 'password_hash', nullable: true })
+  passwordHash?: string;
+
+  @Index({ unique: true })
+  @Column({ name: 'google_id', nullable: true })
+  googleId?: string;
 
   @Column({ name: 'full_name' })
   fullName: string;
