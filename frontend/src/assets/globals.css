@@ -90,3 +90,18 @@
     scrollbar-width: thin;
   }
 }
+
+/* Reka UI's DismissableLayer (used by Dialog/Sheet/Select/DropdownMenu/
+   Popover/...) toggles `pointer-events` on its own root via an inline
+   style to track which floating layer is "topmost" and should stay
+   interactive. That computation can resolve to `none` even for the only
+   (or most nested/topmost) open layer, silently swallowing every click
+   inside it — e.g. a Select opened inside an already-open Dialog. Every
+   such root carries `data-dismissable-layer` regardless of which
+   component it belongs to, so force pointer-events back on there
+   globally: a stylesheet !important beats a plain inline style, and
+   there's no legitimate case where an open layer's own content should
+   be unclickable. */
+[data-dismissable-layer] {
+  pointer-events: auto !important;
+}

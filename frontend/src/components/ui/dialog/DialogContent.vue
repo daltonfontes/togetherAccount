@@ -14,14 +14,7 @@ const props = defineProps<DialogContentProps & { class?: string }>();
       v-bind="props"
       :class="
         cn(
-          // Reka UI's DismissableLayer toggles this element's `pointer-events`
-          // via an inline style to manage focus layering; its 'am I the top
-          // layer' check can resolve to false even for the only open dialog,
-          // silently swallowing every click inside. Force it back on — a
-          // stylesheet `!important` beats a plain inline style, and there is
-          // no legitimate case where an open dialog's own content should be
-          // unclickable.
-          '!pointer-events-auto fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border-2 border-border bg-card p-6 shadow-brutal-lg max-h-[90vh] overflow-y-auto sm:rounded-lg',
+          'fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border-2 border-border bg-card p-6 shadow-brutal-lg max-h-[90vh] overflow-y-auto sm:rounded-lg',
           props.class,
         )
       "

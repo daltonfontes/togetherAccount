@@ -28,14 +28,17 @@ const [targetAmount, targetAmountAttrs] = defineField('targetAmount');
 const [deadline, deadlineAttrs] = defineField('deadline');
 
 const onSubmit = handleSubmit((values) => {
-  createGoal.mutate(values, {
-    onSuccess: () => {
-      toast.success('Meta criada');
-      resetForm();
-      open.value = false;
+  createGoal.mutate(
+    { ...values, deadline: values.deadline || undefined },
+    {
+      onSuccess: () => {
+        toast.success('Meta criada');
+        resetForm();
+        open.value = false;
+      },
+      onError: (error) => toast.error(getApiErrorMessage(error)),
     },
-    onError: (error) => toast.error(getApiErrorMessage(error)),
-  });
+  );
 });
 </script>
 
