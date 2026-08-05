@@ -1,10 +1,14 @@
 import { z } from 'zod';
 import { RecurrenceFrequency, SplitMethod, TransactionType } from '@/lib/types';
+import { MAX_MONETARY_VALUE } from './constants';
 
 export const transactionSchema = z
   .object({
     type: z.nativeEnum(TransactionType),
-    amount: z.coerce.number().positive('Informe um valor maior que zero'),
+    amount: z.coerce
+      .number()
+      .positive('Informe um valor maior que zero')
+      .max(MAX_MONETARY_VALUE, 'Valor muito alto'),
     description: z.string().min(1, 'Informe uma descrição'),
     notes: z.string().optional(),
     date: z.string().min(1, 'Informe a data'),

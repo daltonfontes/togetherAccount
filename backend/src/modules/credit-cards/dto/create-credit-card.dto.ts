@@ -10,6 +10,7 @@ import {
   Min,
 } from 'class-validator';
 import { CardBrand } from '@/common/enums';
+import { MAX_MONETARY_VALUE } from '@/common/constants';
 
 export class CreateCreditCardDto {
   @ApiProperty()
@@ -25,6 +26,7 @@ export class CreateCreditCardDto {
   @ApiProperty()
   @IsNumber()
   @Min(0)
+  @Max(MAX_MONETARY_VALUE)
   creditLimit: number;
 
   @ApiProperty({ minimum: 1, maximum: 31 })

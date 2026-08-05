@@ -9,10 +9,12 @@ import {
   IsOptional,
   IsString,
   IsUUID,
+  Max,
   Min,
   ValidateNested,
 } from 'class-validator';
 import { RecurrenceFrequency, SplitMethod, TransactionType } from '@/common/enums';
+import { MAX_MONETARY_VALUE } from '@/common/constants';
 import { TransactionSplitInputDto } from './transaction-split-input.dto';
 
 export class CreateTransactionDto {
@@ -23,6 +25,7 @@ export class CreateTransactionDto {
   @ApiProperty()
   @IsNumber()
   @Min(0.01)
+  @Max(MAX_MONETARY_VALUE)
   amount: number;
 
   @ApiProperty()

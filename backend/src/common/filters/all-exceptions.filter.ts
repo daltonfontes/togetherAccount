@@ -103,23 +103,34 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
     if (exception instanceof QueryFailedError) {
       // Postgres error codes: https://www.postgresql.org/docs/current/errcodes-appendix.html
-      // Only genuine data conflicts are the client's fault (and thus a 409).
-      // Everything else (missing table, syntax error, connection failure, ...)
-      // is a server-side problem and must not be reported as 409/400 territory.
+      // Only genuine bad-input errors are the client's fault. Everything else
+      // (missing table, syntax error, connection failure, ...) is a
+      // server-side problem and must not be reported as 400/409 territory.
       const code = (exception as QueryFailedError & { code?: string }).code;
-      const isDataConflict = code === '23505' || code === '23503' || code === '23514';
+      if (code === '23505' || code === '23503' || code === '23514') {
+        return {
+          statusCode: HttpStatus.CONFLICT,
+          message: 'Database constraint violation',
+          error: 'QueryFailedError',
+        };
+      }
+      if (code === '22003') {
+        // numeric_value_out_of_range — a value exceeded a column's precision.
+        // DTOs validate upper bounds for the known monetary fields, but this
+        // stays as a backstop for anything that reaches the DB unvalidated
+        // (e.g. an accumulated total growing past the column limit).
+        return {
+          statusCode: HttpStatus.BAD_REQUEST,
+          message: 'A numeric value is too large to store',
+          error: 'QueryFailedError',
+        };
+      }
 
-      return isDataConflict
-        ? {
-            statusCode: HttpStatus.CONFLICT,
-            message: 'Database constraint violation',
-            error: 'QueryFailedError',
-          }
-        : {
-            statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
-            message: 'Internal server error',
-            error: 'QueryFailedError',
-          };
+      return {
+        statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+        message: 'Internal server error',
+        error: 'QueryFailedError',
+      };
     }
 
     return {

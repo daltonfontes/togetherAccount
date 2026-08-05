@@ -70,4 +70,20 @@ describe('Goals (e2e)', () => {
       ),
     ).toBe(true);
   });
+
+  it('rejects a targetAmount above the column limit with 400, not 500', async () => {
+    await request(app.getHttpServer())
+      .post(`/api/v1/households/${householdId}/goals`)
+      .set('Authorization', `Bearer ${owner.accessToken}`)
+      .send({ name: 'Meta Absurda', targetAmount: 9_999_999_999_999 })
+      .expect(400);
+  });
+
+  it('rejects a contribution amount above the column limit with 400, not 500', async () => {
+    await request(app.getHttpServer())
+      .post(`/api/v1/households/${householdId}/goals/${goalId}/contributions`)
+      .set('Authorization', `Bearer ${owner.accessToken}`)
+      .send({ amount: 9_999_999_999_999, date: '2026-08-05' })
+      .expect(400);
+  });
 });

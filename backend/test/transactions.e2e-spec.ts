@@ -229,4 +229,61 @@ describe('Transactions (e2e)', () => {
       expect(item.type).toBe('income');
     }
   });
+
+  describe('monetary value limits', () => {
+    // Regression coverage for a real prod incident: a too-large amount used
+    // to reach Postgres and crash with a raw 500 "numeric field overflow"
+    // instead of a clean 400. See MAX_MONETARY_VALUE.
+    it('rejects a transaction amount above the column limit with 400, not 500', async () => {
+      await request(app.getHttpServer())
+        .post(`/api/v1/households/${householdId}/transactions`)
+        .set('Authorization', `Bearer ${owner.accessToken}`)
+        .send({
+          type: 'expense',
+          amount: 9_999_999_999_999,
+          description: 'Valor absurdo',
+          date: '2026-08-05',
+          categoryId: expenseCategoryId,
+        })
+        .expect(400);
+    });
+
+    it('rejects a bank account balance above the column limit with 400, not 500', async () => {
+      await request(app.getHttpServer())
+        .post(`/api/v1/households/${householdId}/bank-accounts`)
+        .set('Authorization', `Bearer ${owner.accessToken}`)
+        .send({ name: 'Conta Estourada', balance: 9_999_999_999_999 })
+        .expect(400);
+    });
+
+    it('rejects a credit card limit above the column limit with 400, not 500', async () => {
+      await request(app.getHttpServer())
+        .post(`/api/v1/households/${householdId}/credit-cards`)
+        .set('Authorization', `Bearer ${owner.accessToken}`)
+        .send({
+          name: 'Cartão Estourado',
+          creditLimit: 9_999_999_999_999,
+          closingDay: 5,
+          dueDay: 15,
+        })
+        .expect(400);
+    });
+
+    it('rejects a split amount above the column limit with 400, not 500', async () => {
+      await request(app.getHttpServer())
+        .post(`/api/v1/households/${householdId}/transactions`)
+        .set('Authorization', `Bearer ${owner.accessToken}`)
+        .send({
+          type: 'expense',
+          amount: 100,
+          description: 'Split absurdo',
+          date: '2026-08-05',
+          categoryId: expenseCategoryId,
+          isShared: true,
+          splitMethod: 'fixed',
+          splits: [{ userId: owner.userId, amount: 9_999_999_999_999 }],
+        })
+        .expect(400);
+    });
+  });
 });

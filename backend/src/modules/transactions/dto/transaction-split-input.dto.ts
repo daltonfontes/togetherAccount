@@ -1,5 +1,6 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsNumber, IsOptional, IsUUID, Min } from 'class-validator';
+import { IsNumber, IsOptional, IsUUID, Max, Min } from 'class-validator';
+import { MAX_MONETARY_VALUE } from '@/common/constants';
 
 export class TransactionSplitInputDto {
   @ApiPropertyOptional()
@@ -10,11 +11,13 @@ export class TransactionSplitInputDto {
   @IsOptional()
   @IsNumber()
   @Min(0)
+  @Max(MAX_MONETARY_VALUE)
   amount?: number;
 
   @ApiPropertyOptional()
   @IsOptional()
   @IsNumber()
   @Min(0)
+  @Max(100)
   percentage?: number;
 }

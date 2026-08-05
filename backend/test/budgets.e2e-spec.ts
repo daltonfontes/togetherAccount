@@ -143,4 +143,12 @@ describe('Budgets (e2e)', () => {
       .set('Authorization', `Bearer ${owner.accessToken}`)
       .expect(404);
   });
+
+  it('rejects a limitAmount above the column limit with 400, not 500', async () => {
+    await request(app.getHttpServer())
+      .post(`/api/v1/households/${householdId}/budgets`)
+      .set('Authorization', `Bearer ${owner.accessToken}`)
+      .send({ categoryId: expenseCategoryId, month: 9, year: 2026, limitAmount: 9_999_999_999_999 })
+      .expect(400);
+  });
 });

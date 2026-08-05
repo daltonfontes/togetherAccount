@@ -1,6 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsBoolean, IsEnum, IsNumber, IsOptional, IsString, MaxLength } from 'class-validator';
+import { IsBoolean, IsEnum, IsNumber, IsOptional, IsString, Max, MaxLength } from 'class-validator';
 import { AccountType } from '@/common/enums';
+import { MAX_MONETARY_VALUE } from '@/common/constants';
 
 export class CreateBankAccountDto {
   @ApiProperty()
@@ -21,6 +22,7 @@ export class CreateBankAccountDto {
   @ApiPropertyOptional({ default: 0 })
   @IsOptional()
   @IsNumber()
+  @Max(MAX_MONETARY_VALUE)
   balance?: number;
 
   @ApiPropertyOptional()
