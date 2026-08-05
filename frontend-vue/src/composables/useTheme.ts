@@ -1,14 +1,15 @@
-import { ref, watchEffect } from 'vue';
+import { computed, ref, watchEffect } from 'vue';
 
 export type ThemePreference = 'light' | 'dark' | 'system';
 
 const STORAGE_KEY = 'theme';
 
 const theme = ref<ThemePreference>((localStorage.getItem(STORAGE_KEY) as ThemePreference | null) ?? 'system');
+const systemPrefersDark = ref(window.matchMedia('(prefers-color-scheme: dark)').matches);
 const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
 
 function resolveIsDark(preference: ThemePreference): boolean {
-  return preference === 'dark' || (preference === 'system' && mediaQuery.matches);
+  return preference === 'dark' || (preference === 'system' && systemPrefersDark.value);
 }
 
 function applyTheme(preference: ThemePreference) {
@@ -25,14 +26,16 @@ watchEffect(() => {
   localStorage.setItem(STORAGE_KEY, theme.value);
 });
 
-mediaQuery.addEventListener('change', () => {
-  if (theme.value === 'system') applyTheme('system');
+mediaQuery.addEventListener('change', (event) => {
+  systemPrefersDark.value = event.matches;
 });
+
+const resolvedTheme = computed<'light' | 'dark'>(() => (resolveIsDark(theme.value) ? 'dark' : 'light'));
 
 export function useTheme() {
   function setTheme(preference: ThemePreference) {
     theme.value = preference;
   }
 
-  return { theme, setTheme };
+  return { theme, resolvedTheme, setTheme };
 }

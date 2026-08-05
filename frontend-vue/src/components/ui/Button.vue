@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { Component } from 'vue';
 import { Primitive } from 'reka-ui';
 import { cn } from '@/lib/utils';
 import { buttonVariants, type ButtonVariants } from './button-variants';
@@ -7,7 +8,7 @@ interface Props {
   variant?: ButtonVariants['variant'];
   size?: ButtonVariants['size'];
   asChild?: boolean;
-  as?: string;
+  as?: string | Component;
   class?: string;
 }
 

@@ -4,6 +4,7 @@ import piniaPluginPersistedstate from 'pinia-plugin-persistedstate';
 import { VueQueryPlugin, QueryClient } from '@tanstack/vue-query';
 import App from './App.vue';
 import router from './router';
+import './lib/chart-setup';
 import './assets/globals.css';
 
 const pinia = createPinia();
