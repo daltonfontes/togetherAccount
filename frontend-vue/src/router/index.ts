@@ -1,0 +1,50 @@
+import { createRouter, createWebHistory } from 'vue-router';
+import { useAuthStore } from '@/stores/auth.store';
+
+const router = createRouter({
+  history: createWebHistory(),
+  routes: [
+    {
+      path: '/',
+      redirect: '/dashboard',
+    },
+    {
+      path: '/',
+      component: () => import('@/components/layout/AuthLayout.vue'),
+      meta: { requiresAuth: false },
+      children: [
+        { path: 'login', name: 'login', component: () => import('@/views/auth/LoginView.vue') },
+        { path: 'register', name: 'register', component: () => import('@/views/auth/RegisterView.vue') },
+        { path: 'magic-link', name: 'magic-link', component: () => import('@/views/auth/MagicLinkView.vue') },
+      ],
+    },
+    {
+      path: '/auth/callback',
+      name: 'auth-callback',
+      component: () => import('@/views/auth/GoogleCallbackView.vue'),
+    },
+    {
+      path: '/auth/magic-link',
+      name: 'auth-magic-link-verify',
+      component: () => import('@/views/auth/MagicLinkCallbackView.vue'),
+    },
+    {
+      path: '/',
+      component: () => import('@/components/layout/AuthenticatedLayout.vue'),
+      meta: { requiresAuth: true },
+      children: [
+        { path: 'dashboard', name: 'dashboard', component: () => import('@/views/DashboardView.vue') },
+      ],
+    },
+  ],
+});
+
+router.beforeEach((to) => {
+  const authStore = useAuthStore();
+  if (to.meta.requiresAuth && !authStore.accessToken) {
+    return { name: 'login' };
+  }
+  return true;
+});
+
+export default router;
