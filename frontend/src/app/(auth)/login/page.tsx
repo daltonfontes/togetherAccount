@@ -75,9 +75,6 @@ export default function LoginPage() {
             Cadastre-se
           </Link>
         </p>
-        <p className="mt-2 text-center text-xs text-muted-foreground">
-          Demo: demo@togetheraccount.app / Demo@12345
-        </p>
       </CardContent>
     </Card>
   );
