@@ -34,6 +34,7 @@ const router = createRouter({
       meta: { requiresAuth: true },
       children: [
         { path: 'dashboard', name: 'dashboard', component: () => import('@/views/DashboardView.vue') },
+        { path: 'transactions', name: 'transactions', component: () => import('@/views/TransactionsView.vue') },
       ],
     },
   ],
