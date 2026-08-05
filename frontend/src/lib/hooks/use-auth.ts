@@ -33,6 +33,27 @@ export function useRegister() {
   });
 }
 
+export function useRequestMagicLink() {
+  return useMutation({
+    mutationFn: authApi.requestMagicLink,
+  });
+}
+
+export function useVerifyMagicLink() {
+  const setAuth = useAuthStore((state) => state.setAuth);
+  const router = useRouter();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: authApi.verifyMagicLink,
+    onSuccess: (data) => {
+      setAuth(data);
+      queryClient.clear();
+      router.push('/dashboard');
+    },
+  });
+}
+
 export function useLogout() {
   const clear = useAuthStore((state) => state.clear);
   const router = useRouter();

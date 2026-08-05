@@ -6,6 +6,11 @@ export const loginSchema = z.object({
 });
 export type LoginFormValues = z.infer<typeof loginSchema>;
 
+export const magicLinkSchema = z.object({
+  email: z.string().email('Informe um e-mail válido'),
+});
+export type MagicLinkFormValues = z.infer<typeof magicLinkSchema>;
+
 export const registerSchema = z
   .object({
     fullName: z.string().min(2, 'Informe seu nome completo'),

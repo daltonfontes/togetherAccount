@@ -66,6 +66,11 @@ export default function LoginPage() {
             </Button>
           </form>
         </Form>
+        <p className="mt-3 text-center text-sm">
+          <Link href="/magic-link" className="font-medium text-primary hover:underline">
+            Entrar sem senha
+          </Link>
+        </p>
         <div className="mt-4">
           <GoogleAuthButton />
         </div>

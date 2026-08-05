@@ -19,6 +19,8 @@ import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
+import { RequestMagicLinkDto } from './dto/request-magic-link.dto';
+import { VerifyMagicLinkDto } from './dto/verify-magic-link.dto';
 import { AuthResponseDto } from './dto/auth-response.dto';
 import { Public } from './decorators/public.decorator';
 import { CurrentUser } from './decorators/current-user.decorator';
@@ -62,6 +64,28 @@ export class AuthController {
   ): Promise<AuthResponseDto> {
     const { sub, tokenId, refreshToken } = req.user;
     return this.authService.refresh(sub, tokenId, refreshToken, this.extractMeta(req));
+  }
+
+  @Public()
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @Post('magic-link')
+  @ApiOperation({ summary: 'Email a passwordless sign-in link' })
+  async requestMagicLink(@Body() dto: RequestMagicLinkDto): Promise<void> {
+    // Always responds 204 whether or not the email has an account — the
+    // account gets created on verify, so there's nothing to enumerate.
+    await this.authService.requestMagicLink(dto.email);
+  }
+
+  @Public()
+  @HttpCode(HttpStatus.OK)
+  @Post('magic-link/verify')
+  @ApiOperation({ summary: 'Exchange a magic link token for a token pair' })
+  async verifyMagicLink(
+    @Body() dto: VerifyMagicLinkDto,
+    @Req() req: Request,
+  ): Promise<AuthResponseDto> {
+    return this.authService.verifyMagicLink(dto.token, this.extractMeta(req));
   }
 
   @Public()

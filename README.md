@@ -28,7 +28,10 @@ togetherAccount/
   hashing de senha com **Argon2**, estratégias Passport, guardas de papel por casa
   (`owner` / `admin` / `member`). Login com **Google (OAuth 2.0)** opcional —
   desativado por padrão, habilita ao definir `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET`/
-  `GOOGLE_CALLBACK_URL`.
+  `GOOGLE_CALLBACK_URL`. **Magic link** (login sem senha por e-mail, token de
+  uso único com expiração de 15 min) sempre disponível — cria a conta
+  automaticamente no primeiro acesso; depende de `RESEND_API_KEY` para o
+  e-mail sair de verdade (ver seção de variáveis de ambiente).
 - **Redis + BullMQ** para jobs assíncronos: geração de transações recorrentes,
   alertas de orçamento/fatura e envio de e-mails de convite via **Resend** —
   opcional, sem `RESEND_API_KEY` os e-mails só são logados, não enviados.

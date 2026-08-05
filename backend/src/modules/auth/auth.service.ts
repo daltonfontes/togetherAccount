@@ -3,14 +3,16 @@ import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as argon2 from 'argon2';
-import { randomUUID } from 'crypto';
-import { MoreThan, Repository } from 'typeorm';
+import { createHash, randomBytes, randomUUID } from 'crypto';
+import { IsNull, MoreThan, Repository } from 'typeorm';
 import { AppConfig } from '@/config/configuration';
 import { RefreshToken } from '@/database/entities/refresh-token.entity';
+import { MagicLinkToken } from '@/database/entities/magic-link-token.entity';
 import { User } from '@/database/entities/user.entity';
 import { AuditService } from '@/modules/audit/audit.service';
 import { AuditAction } from '@/common/enums';
 import { UsersService } from '@/modules/users/users.service';
+import { EmailQueueService } from '@/queues/email/email-queue.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { AuthResponseDto } from './dto/auth-response.dto';
@@ -22,6 +24,8 @@ interface RequestMetadata {
   userAgent?: string;
 }
 
+const MAGIC_LINK_EXPIRY_MINUTES = 15;
+
 @Injectable()
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
@@ -31,8 +35,11 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService<AppConfig>,
     private readonly auditService: AuditService,
+    private readonly emailQueueService: EmailQueueService,
     @InjectRepository(RefreshToken)
     private readonly refreshTokenRepository: Repository<RefreshToken>,
+    @InjectRepository(MagicLinkToken)
+    private readonly magicLinkTokenRepository: Repository<MagicLinkToken>,
   ) {}
 
   async register(dto: RegisterDto, meta: RequestMetadata): Promise<AuthResponseDto> {
@@ -122,6 +129,74 @@ export class AuthService {
     });
 
     return this.issueTokens(user, meta);
+  }
+
+  async requestMagicLink(rawEmail: string): Promise<void> {
+    const email = rawEmail.toLowerCase();
+    const rawToken = randomBytes(32).toString('hex');
+    const expiresAt = new Date(Date.now() + MAGIC_LINK_EXPIRY_MINUTES * 60 * 1000);
+
+    await this.magicLinkTokenRepository.save(
+      this.magicLinkTokenRepository.create({
+        email,
+        tokenHash: this.hashMagicLinkToken(rawToken),
+        expiresAt,
+      }),
+    );
+
+    const frontendUrl = this.configService.get('frontendUrl', { infer: true })!;
+    const link = `${frontendUrl}/auth/magic-link?token=${rawToken}`;
+
+    await this.emailQueueService.queueMagicLinkEmail({
+      to: email,
+      link,
+      expiresInMinutes: MAGIC_LINK_EXPIRY_MINUTES,
+    });
+  }
+
+  async verifyMagicLink(rawToken: string, meta: RequestMetadata): Promise<AuthResponseDto> {
+    const tokenHash = this.hashMagicLinkToken(rawToken);
+    const record = await this.magicLinkTokenRepository.findOne({
+      where: { tokenHash, consumedAt: IsNull(), expiresAt: MoreThan(new Date()) },
+    });
+
+    if (!record) {
+      throw new UnauthorizedException('This sign-in link is invalid or has expired');
+    }
+
+    // Mark consumed before issuing tokens so a second request with the same
+    // link (e.g. an email client prefetching it) can't also log in with it.
+    await this.magicLinkTokenRepository.update(record.id, { consumedAt: new Date() });
+
+    let user = await this.usersService.findByEmail(record.email);
+    if (!user) {
+      user = await this.usersService.create({
+        email: record.email,
+        fullName: record.email.split('@')[0],
+        emailVerified: true,
+      });
+    }
+
+    if (!user.isActive) {
+      throw new UnauthorizedException('Account is inactive');
+    }
+
+    await this.usersService.updateLastLogin(user.id);
+
+    await this.auditService.log({
+      userId: user.id,
+      action: AuditAction.LOGIN,
+      entityType: 'User',
+      entityId: user.id,
+      ipAddress: meta.ipAddress,
+      userAgent: meta.userAgent,
+    });
+
+    return this.issueTokens(user, meta);
+  }
+
+  private hashMagicLinkToken(rawToken: string): string {
+    return createHash('sha256').update(rawToken).digest('hex');
   }
 
   async refresh(

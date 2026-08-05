@@ -5,8 +5,10 @@ import { PassportModule } from '@nestjs/passport';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppConfig } from '@/config/configuration';
 import { RefreshToken } from '@/database/entities/refresh-token.entity';
+import { MagicLinkToken } from '@/database/entities/magic-link-token.entity';
 import { UsersModule } from '@/modules/users/users.module';
 import { AuditModule } from '@/modules/audit/audit.module';
+import { EmailModule } from '@/queues/email/email.module';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { JwtStrategy } from './strategies/jwt.strategy';
@@ -28,10 +30,11 @@ const googleOAuthProviders =
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([RefreshToken]),
+    TypeOrmModule.forFeature([RefreshToken, MagicLinkToken]),
     PassportModule,
     UsersModule,
     AuditModule,
+    EmailModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],

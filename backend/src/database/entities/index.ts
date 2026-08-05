@@ -1,5 +1,6 @@
 export * from './user.entity';
 export * from './refresh-token.entity';
+export * from './magic-link-token.entity';
 export * from './household.entity';
 export * from './household-member.entity';
 export * from './invite.entity';

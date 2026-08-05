@@ -8,6 +8,11 @@ export const authApi = {
   register: (payload: { email: string; password: string; fullName: string }) =>
     unwrap<AuthResponse>(apiClient.post('/auth/register', payload)),
 
+  requestMagicLink: (payload: { email: string }) => apiClient.post('/auth/magic-link', payload),
+
+  verifyMagicLink: (payload: { token: string }) =>
+    unwrap<AuthResponse>(apiClient.post('/auth/magic-link/verify', payload)),
+
   logout: () => apiClient.post('/auth/logout'),
 
   me: () => unwrap<User>(apiClient.get('/users/me')),

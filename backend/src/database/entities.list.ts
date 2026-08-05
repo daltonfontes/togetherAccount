@@ -1,6 +1,7 @@
 import {
   User,
   RefreshToken,
+  MagicLinkToken,
   Household,
   HouseholdMember,
   Invite,
@@ -19,6 +20,7 @@ import {
 export const entities = [
   User,
   RefreshToken,
+  MagicLinkToken,
   Household,
   HouseholdMember,
   Invite,
