@@ -121,11 +121,24 @@ export class HouseholdsService {
     role: HouseholdRole,
     actingUserId: string,
   ): Promise<HouseholdMember> {
+    const household = await this.findByIdOrFail(householdId);
     const member = await this.memberRepository.findOne({
       where: { id: memberId, householdId },
     });
     if (!member) {
       throw new NotFoundException('Household member not found');
+    }
+    // Ownership is tied to `household.ownerId`, not this mutable role column,
+    // so nothing here actually transfers ownership — but leaving both checks
+    // out would let an admin silently strip the owner's OWNER role (locking
+    // them out of every OWNER/ADMIN-gated endpoint even though they still
+    // technically own the household) or hand themselves an OWNER label with
+    // no real backing. Neither is a legitimate outcome of this endpoint.
+    if (member.userId === household.ownerId) {
+      throw new ForbiddenException("Cannot change the household owner's role");
+    }
+    if (role === HouseholdRole.OWNER) {
+      throw new ForbiddenException('Ownership cannot be granted through this endpoint');
     }
     const oldRole = member.role;
     member.role = role;

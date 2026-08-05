@@ -150,5 +150,69 @@ describe('Households (e2e)', () => {
         .set('Authorization', `Bearer ${owner.accessToken}`)
         .expect(403);
     });
+
+    it('prevents an admin from demoting the household owner', async () => {
+      const household = await createHousehold(app, owner.accessToken, { name: 'Casa com Admin' });
+      const admin = await registerUser(app, { email: 'admin-demote@example.com' });
+
+      await request(app.getHttpServer())
+        .post(`/api/v1/households/${household.id}/invites`)
+        .set('Authorization', `Bearer ${owner.accessToken}`)
+        .send({ email: admin.email, role: 'admin' })
+        .expect(201);
+      const invites = await request(app.getHttpServer())
+        .get('/api/v1/invites/me')
+        .set('Authorization', `Bearer ${admin.accessToken}`)
+        .expect(200);
+      await request(app.getHttpServer())
+        .post(`/api/v1/invites/${invites.body.data[0].token}/accept`)
+        .set('Authorization', `Bearer ${admin.accessToken}`)
+        .expect(201);
+
+      const members = await request(app.getHttpServer())
+        .get(`/api/v1/households/${household.id}/members`)
+        .set('Authorization', `Bearer ${owner.accessToken}`)
+        .expect(200);
+      const ownerMemberId = members.body.data.find(
+        (m: { userId: string }) => m.userId === owner.userId,
+      ).id;
+
+      // The admin tries to strip the real owner's role — must be rejected,
+      // otherwise the owner would be locked out of every owner/admin-gated
+      // endpoint on their own household while still technically owning it.
+      await request(app.getHttpServer())
+        .patch(`/api/v1/households/${household.id}/members/${ownerMemberId}/role`)
+        .set('Authorization', `Bearer ${admin.accessToken}`)
+        .send({ role: 'member' })
+        .expect(403);
+    });
+
+    it('prevents granting the owner role through the member-role endpoint', async () => {
+      const household = await createHousehold(app, owner.accessToken, { name: 'Casa Sem Golpe' });
+      const member = await registerUser(app, { email: 'member-escalate@example.com' });
+
+      await request(app.getHttpServer())
+        .post(`/api/v1/households/${household.id}/invites`)
+        .set('Authorization', `Bearer ${owner.accessToken}`)
+        .send({ email: member.email, role: 'admin' })
+        .expect(201);
+      const invites = await request(app.getHttpServer())
+        .get('/api/v1/invites/me')
+        .set('Authorization', `Bearer ${member.accessToken}`)
+        .expect(200);
+      const accepted = await request(app.getHttpServer())
+        .post(`/api/v1/invites/${invites.body.data[0].token}/accept`)
+        .set('Authorization', `Bearer ${member.accessToken}`)
+        .expect(201);
+      const memberId = accepted.body.data.id;
+
+      // An admin tries to hand themselves the owner role — must be rejected;
+      // ownership is tied to household.ownerId, not this mutable role column.
+      await request(app.getHttpServer())
+        .patch(`/api/v1/households/${household.id}/members/${memberId}/role`)
+        .set('Authorization', `Bearer ${member.accessToken}`)
+        .send({ role: 'owner' })
+        .expect(403);
+    });
   });
 });
