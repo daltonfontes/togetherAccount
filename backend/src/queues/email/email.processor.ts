@@ -3,6 +3,8 @@ import { Logger } from '@nestjs/common';
 import { Job } from 'bullmq';
 import { MetricsService } from '@/observability/metrics/metrics.service';
 import { JOB_NAMES, QUEUE_NAMES } from '../queue.constants';
+import { EmailService } from './email.service';
+import { inviteEmailTemplate } from './templates/invite-email.template';
 
 export interface SendInviteEmailJob {
   to: string;
@@ -16,7 +18,10 @@ export interface SendInviteEmailJob {
 export class EmailProcessor extends WorkerHost {
   private readonly logger = new Logger(EmailProcessor.name);
 
-  constructor(private readonly metricsService: MetricsService) {
+  constructor(
+    private readonly metricsService: MetricsService,
+    private readonly emailService: EmailService,
+  ) {
     super();
   }
 
@@ -33,9 +38,12 @@ export class EmailProcessor extends WorkerHost {
 
   private async sendInviteEmail(data: SendInviteEmailJob): Promise<void> {
     const link = `${data.frontendUrl}/invites/${data.inviteToken}`;
-    // NOTE: replace with a real transactional email provider (SES, SendGrid, Postmark...) in production.
-    this.logger.log(
-      `Sending invite email to ${data.to}: ${data.inviterName} invited you to "${data.householdName}" - ${link}`,
-    );
+    const { subject, html, text } = inviteEmailTemplate({
+      householdName: data.householdName,
+      inviterName: data.inviterName,
+      link,
+    });
+
+    await this.emailService.send({ to: data.to, subject, html, text });
   }
 }

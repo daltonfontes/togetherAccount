@@ -33,6 +33,10 @@ export const validationSchema = Joi.object({
   GOOGLE_CLIENT_SECRET: Joi.string().allow('').optional(),
   GOOGLE_CALLBACK_URL: Joi.string().allow('').optional(),
 
+  // Optional: without RESEND_API_KEY, outgoing emails are logged instead of sent.
+  RESEND_API_KEY: Joi.string().allow('').optional(),
+  EMAIL_FROM: Joi.string().default('Together Account <onboarding@resend.dev>'),
+
   THROTTLE_TTL: Joi.number().default(60),
   THROTTLE_LIMIT: Joi.number().default(100),
 

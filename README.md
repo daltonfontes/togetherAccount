@@ -30,7 +30,8 @@ togetherAccount/
   desativado por padrão, habilita ao definir `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET`/
   `GOOGLE_CALLBACK_URL`.
 - **Redis + BullMQ** para jobs assíncronos: geração de transações recorrentes,
-  alertas de orçamento/fatura e envio de e-mails de convite.
+  alertas de orçamento/fatura e envio de e-mails de convite via **Resend** —
+  opcional, sem `RESEND_API_KEY` os e-mails só são logados, não enviados.
 - **Observabilidade**: logs estruturados com Winston, tracing distribuído via
   OpenTelemetry (OTLP), métricas Prometheus em `/api/metrics`, health checks em
   `/api/health` (Terminus).
@@ -143,12 +144,15 @@ Destaques:
   login com Google fica desativado (rotas `/auth/google` respondem 503) até os
   três estarem definidos. Credenciais em
   https://console.cloud.google.com/apis/credentials.
+- `RESEND_API_KEY` / `EMAIL_FROM`: opcionais; sem `RESEND_API_KEY`, e-mails
+  (convite de morador) só são logados, não enviados de verdade. Chave em
+  https://resend.com/api-keys — o remetente sandbox padrão
+  (`onboarding@resend.dev`) só entrega pro e-mail da própria conta Resend;
+  verifique um domínio em https://resend.com/domains para enviar a usuários
+  reais.
 
 ## Limitações conhecidas
 
-- O envio de e-mail de convite é simulado (log estruturado via BullMQ); para
-  produção, plugue um provedor transacional (SES, Postmark, SendGrid...) no
-  `EmailProcessor` (`backend/src/queues/email`).
 - `npm audit` reporta CVEs em dependências transitivas empacotadas dentro do
   próprio `next` (postcss/sharp usados internamente pela otimização de imagens);
   não há correção disponível sem downgrade do Next.js — acompanhar futuras

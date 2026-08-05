@@ -31,6 +31,10 @@ export interface AppConfig {
     clientSecret?: string;
     callbackUrl?: string;
   };
+  email: {
+    resendApiKey?: string;
+    from: string;
+  };
   throttle: {
     ttl: number;
     limit: number;
@@ -74,6 +78,10 @@ export default (): AppConfig => ({
     clientId: process.env.GOOGLE_CLIENT_ID || undefined,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET || undefined,
     callbackUrl: process.env.GOOGLE_CALLBACK_URL || undefined,
+  },
+  email: {
+    resendApiKey: process.env.RESEND_API_KEY || undefined,
+    from: process.env.EMAIL_FROM || 'Together Account <onboarding@resend.dev>',
   },
   throttle: {
     ttl: parseInt(process.env.THROTTLE_TTL ?? '60', 10),
