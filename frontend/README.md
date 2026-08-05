@@ -1,8 +1,7 @@
-# frontend-vue
+# frontend
 
-Rewrite do frontend do Together Account em Vue 3 + Vite, substituindo o app Next.js/React em `frontend/`.
-
-Enquanto o rewrite está em andamento, `frontend/` continua sendo o app em produção — este diretório só é promovido a `frontend/` no PR de corte final.
+Frontend do Together Account — Vue 3 + Vite + TypeScript, consumindo a API do
+`backend/` via REST.
 
 ## Desenvolvimento
 
@@ -18,4 +17,5 @@ npm run dev
 - `npm run build` — typecheck (`vue-tsc`) + build de produção
 - `npm run lint` — ESLint
 - `npm run typecheck` — apenas o typecheck
+- `npm run test` — suíte Vitest
 - `npm run preview` — serve o build de produção localmente

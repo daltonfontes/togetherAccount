@@ -13,7 +13,7 @@ stack de observabilidade completa:
 ```
 togetherAccount/
 ├── backend/          NestJS + TypeScript + TypeORM + PostgreSQL API
-├── frontend/          Next.js 15 + React 19 dashboard SPA
+├── frontend/          Vue 3 + Vite dashboard SPA
 ├── observability/     Configs do Prometheus, Grafana, Loki e Tempo
 └── docker-compose.yml Orquestração de todos os serviços
 ```
@@ -46,17 +46,21 @@ togetherAccount/
 
 ### Frontend (`/frontend`)
 
-- **Next.js 15 (App Router) + React 19 + TypeScript**.
-- **TailwindCSS** com tema claro/escuro via `next-themes` (design tokens em
-  `globals.css`, alternância manual ou automática pelo sistema).
-- Componentes de UI no estilo **shadcn/ui** (Radix UI + `class-variance-authority`),
-  totalmente responsivos.
-- **TanStack Query** para cache/sincronização de dados do servidor, **Zustand**
-  para estado de sessão (token, casa selecionada) com persistência em
-  `localStorage`, **React Hook Form + Zod** para formulários validados.
-- **Recharts** para os gráficos do dashboard e relatórios (fluxo de caixa,
-  despesas por categoria, gastos por pessoa), com paleta de cores validada para
-  acessibilidade (contraste e daltonismo) em ambos os temas.
+- **Vue 3 (Composition API, `<script setup>`) + Vite + TypeScript**, SPA
+  client-side roteada com **Vue Router** (sem SSR — não há necessidade de SEO
+  num dashboard autenticado).
+- **TailwindCSS** com tema claro/escuro via composable próprio (`useTheme`,
+  design tokens em `globals.css`, alternância manual ou automática pelo sistema).
+- Componentes de UI no estilo **shadcn/ui** sobre **Reka UI** (fork Vue do
+  Radix UI) + `class-variance-authority`, totalmente responsivos.
+- **TanStack Query** (`@tanstack/vue-query`) para cache/sincronização de dados
+  do servidor, **Pinia** para estado de sessão (token, casa selecionada) com
+  persistência em `localStorage`, **VeeValidate + Zod** para formulários
+  validados.
+- **Chart.js** (via `vue-chartjs`) para os gráficos do dashboard e relatórios
+  (fluxo de caixa, despesas por categoria, gastos por pessoa), com paleta de
+  cores validada para acessibilidade (contraste e daltonismo) em ambos os
+  temas.
 - **Axios** com interceptor de refresh token automático (renova a sessão em caso
   de 401 e repete a requisição original).
 
@@ -115,9 +119,9 @@ npm run start:dev          # http://localhost:3001
 
 # Frontend
 cd frontend
-cp .env.example .env.local
+cp .env.example .env
 npm install
-npm run dev                 # http://localhost:3000
+npm run dev                 # http://localhost:5173
 ```
 
 ## Testes
@@ -129,6 +133,7 @@ npm test          # suíte Jest (auth, transactions, budgets)
 cd frontend
 npm run lint
 npm run typecheck
+npm run test       # suíte Vitest (auth guard, refresh de token)
 npm run build      # build de produção completo
 ```
 
@@ -142,7 +147,8 @@ Destaques:
 - `DB_SYNCHRONIZE`: deve permanecer `false`; o schema é controlado por migrations.
 - `OTEL_EXPORTER_OTLP_ENDPOINT`: endpoint OTLP HTTP para onde os traces são
   enviados (Tempo, por padrão, no compose).
-- `NEXT_PUBLIC_API_URL`: URL base da API consumida pelo frontend.
+- `VITE_API_URL`: URL base da API consumida pelo frontend (definida em build-time,
+  já que o frontend é uma SPA estática servida por nginx).
 - `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` / `GOOGLE_CALLBACK_URL`: opcionais;
   login com Google fica desativado (rotas `/auth/google` respondem 503) até os
   três estarem definidos. Credenciais em
@@ -154,9 +160,3 @@ Destaques:
   verifique um domínio em https://resend.com/domains para enviar a usuários
   reais.
 
-## Limitações conhecidas
-
-- `npm audit` reporta CVEs em dependências transitivas empacotadas dentro do
-  próprio `next` (postcss/sharp usados internamente pela otimização de imagens);
-  não há correção disponível sem downgrade do Next.js — acompanhar futuras
-  releases do Next 15.

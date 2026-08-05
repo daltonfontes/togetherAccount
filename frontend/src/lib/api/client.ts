@@ -1,8 +1,8 @@
 import axios, { AxiosError, type InternalAxiosRequestConfig } from 'axios';
-import { useAuthStore } from '@/lib/stores/auth-store';
+import { useAuthStore } from '@/stores/auth.store';
 import type { ApiEnvelope, AuthResponse } from '@/lib/types';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api/v1';
 
 export const apiClient = axios.create({
   baseURL: API_URL,
@@ -10,7 +10,7 @@ export const apiClient = axios.create({
 });
 
 apiClient.interceptors.request.use((config: InternalAxiosRequestConfig) => {
-  const token = useAuthStore.getState().accessToken;
+  const token = useAuthStore().accessToken;
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -20,7 +20,7 @@ apiClient.interceptors.request.use((config: InternalAxiosRequestConfig) => {
 let refreshPromise: Promise<string> | null = null;
 
 async function refreshAccessToken(): Promise<string> {
-  const { refreshToken, setAuth, clear } = useAuthStore.getState();
+  const { refreshToken, setAuth, clear } = useAuthStore();
   if (!refreshToken) {
     clear();
     throw new Error('No refresh token available');

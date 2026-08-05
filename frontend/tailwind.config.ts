@@ -3,11 +3,7 @@ import tailwindcssAnimate from 'tailwindcss-animate';
 
 const config: Config = {
   darkMode: ['class'],
-  content: [
-    './src/pages/**/*.{ts,tsx}',
-    './src/components/**/*.{ts,tsx}',
-    './src/app/**/*.{ts,tsx}',
-  ],
+  content: ['./index.html', './src/**/*.{vue,ts}'],
   theme: {
     container: {
       center: true,
@@ -71,10 +67,10 @@ const config: Config = {
       keyframes: {
         'accordion-down': {
           from: { height: '0' },
-          to: { height: 'var(--radix-accordion-content-height)' },
+          to: { height: 'var(--reka-accordion-content-height)' },
         },
         'accordion-up': {
-          from: { height: 'var(--radix-accordion-content-height)' },
+          from: { height: 'var(--reka-accordion-content-height)' },
           to: { height: '0' },
         },
       },

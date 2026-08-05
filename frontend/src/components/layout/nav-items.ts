@@ -1,3 +1,4 @@
+import type { Component } from 'vue';
 import {
   LayoutDashboard,
   ArrowLeftRight,
@@ -9,13 +10,12 @@ import {
   BarChart3,
   Bell,
   Settings,
-  type LucideIcon,
-} from 'lucide-react';
+} from '@lucide/vue';
 
 export interface NavItem {
   title: string;
   href: string;
-  icon: LucideIcon;
+  icon: Component;
 }
 
 export const navItems: NavItem[] = [
